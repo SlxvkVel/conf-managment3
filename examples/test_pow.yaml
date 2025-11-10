@@ -1,0 +1,4 @@
+- command: pow
+  value1_addr: 470
+  value2_reg: 8
+  result_reg: 5

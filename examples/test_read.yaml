@@ -1,0 +1,4 @@
+- command: read
+  address_reg: 24
+  offset: 245
+  result_reg: 14

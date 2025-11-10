@@ -1,0 +1,4 @@
+- command: write
+  value_reg: 16
+  address_reg: 28
+  offset: 127

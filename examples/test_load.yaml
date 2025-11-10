@@ -1,0 +1,3 @@
+- command: load
+  constant: 152
+  address: 21
