@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<memory_dump start="0" end="10">
+  <byte address="0" value="6">0x06</byte>
+  <byte address="1" value="38">0x26</byte>
+  <byte address="2" value="168">0xa8</byte>
+  <byte address="3" value="150">0x96</byte>
+  <byte address="4" value="171">0xab</byte>
+  <byte address="5" value="199">0xc7</byte>
+  <byte address="6" value="26">0x1a</byte>
+  <byte address="7" value="228">0xe4</byte>
+  <byte address="8" value="127">0x7f</byte>
+  <byte address="9" value="0">0x00</byte>
+  <byte address="10" value="0">0x00</byte>
+</memory_dump>

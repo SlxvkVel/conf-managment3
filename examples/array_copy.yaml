@@ -1,0 +1,102 @@
+- command: load
+  constant: 10
+  address: 1
+
+- command: load
+  constant: 20
+  address: 2
+
+- command: load
+  constant: 30
+  address: 3
+
+- command: load
+  constant: 40
+  address: 4
+
+- command: load
+  constant: 50
+  address: 5
+
+- command: load
+  constant: 1000
+  address: 10
+
+- command: write
+  value_reg: 1
+  address_reg: 10
+  offset: 0
+
+- command: write
+  value_reg: 2
+  address_reg: 10
+  offset: 1
+
+- command: write
+  value_reg: 3
+  address_reg: 10
+  offset: 2
+
+- command: write
+  value_reg: 4
+  address_reg: 10
+  offset: 3
+
+- command: write
+  value_reg: 5
+  address_reg: 10
+  offset: 4
+
+- command: load
+  constant: 2000
+  address: 11
+
+- command: read
+  address_reg: 10
+  offset: 0
+  result_reg: 20
+
+- command: write
+  value_reg: 20
+  address_reg: 11
+  offset: 0
+
+- command: read
+  address_reg: 10
+  offset: 1
+  result_reg: 21
+
+- command: write
+  value_reg: 21
+  address_reg: 11
+  offset: 1
+
+- command: read
+  address_reg: 10
+  offset: 2
+  result_reg: 22
+
+- command: write
+  value_reg: 22
+  address_reg: 11
+  offset: 2
+
+- command: read
+  address_reg: 10
+  offset: 3
+  result_reg: 23
+
+- command: write
+  value_reg: 23
+  address_reg: 11
+  offset: 3
+
+- command: read
+  address_reg: 10
+  offset: 4
+  result_reg: 24
+
+- command: write
+  value_reg: 24
+  address_reg: 11
+  offset: 4

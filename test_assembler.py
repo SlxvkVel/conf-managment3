@@ -1,41 +1,40 @@
 import os
 from assembler import Assembler
 
+
 def run_test(test_name, input_file, expected_bytes):
-    print(f" Тестируем: {test_name}")
-    print(f" Файл: {input_file}")
+    print(f"🧪 Тестируем: {test_name}")
+    print(f"📁 Файл: {input_file}")
 
     try:
         assembler = Assembler()
         program = assembler.load_program(input_file)
         binary_code, intermediate_repr = assembler.assemble(program)
 
-        # Сохраняем во временный файл для проверки
         with open('test_output.bin', 'wb') as f:
             f.write(bytes(binary_code))
 
-        # Читаем и проверяем байты
-        with open('test_output.bin', 'rb') as f:
-            binary_data = f.read()
-
-        actual_bytes = [f"0x{byte:02x}" for byte in binary_data]
-        print(f"Сгенерировано: {actual_bytes}")
-        print(f" Ожидалось:    {expected_bytes}")
+        actual_bytes = [f"0x{byte:02x}" for byte in binary_code]
+        print(f"✅ Сгенерировано: {actual_bytes}")
+        print(f"📋 Ожидалось:    {expected_bytes}")
 
         if actual_bytes == expected_bytes:
-            print(" ТЕСТ ПРОЙДЕН!")
+            print("🎉 ТЕСТ ПРОЙДЕН!")
             return True
         else:
-            print(" ТЕСТ НЕ ПРОЙДЕН!")
+            print("💥 ТЕСТ НЕ ПРОЙДЕН!")
             return False
 
     except Exception as e:
-        print(f"ОШИБКА: {e}")
+        print(f"❌ ОШИБКА: {e}")
         return False
 
 
 def main():
-    print("ТЕСТИРОВАНИЕ АССЕМБЛЕРА")
+    print("=" * 60)
+    print("ТЕСТИРОВАНИЕ АССЕМБЛЕРА УВМ")
+    print("=" * 60)
+
     tests = [
         {
             'name': 'LOAD (A=6, B=152, C=21)',
@@ -66,9 +65,9 @@ def main():
             passed += 1
         print()
 
+    print("=" * 60)
     print(f"ИТОГ: {passed}/{len(tests)} тестов пройдено")
 
-    # Очистка
     if os.path.exists('test_output.bin'):
         os.remove('test_output.bin')
 

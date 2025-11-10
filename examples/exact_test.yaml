@@ -1,0 +1,13 @@
+- command: load
+  constant: 152
+  address: 21
+
+- command: read
+  address_reg: 24
+  offset: 245
+  result_reg: 14
+
+- command: write
+  value_reg: 16
+  address_reg: 28
+  offset: 127

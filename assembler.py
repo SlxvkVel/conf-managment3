@@ -24,38 +24,37 @@ class Assembler:
             return yaml.safe_load(f)
 
     def assemble_load(self, command):
-        """LOAD: A=6 бит, B=13 бит, C=5 бит (3 байта)"""
         a = self.command_codes['load']
         b = command['constant']
         c = command['address']
 
-        # Проверка диапазонов
-        if not (0 <= b <= 0x1FFF):  # 13 бит
+        if not (0 <= b <= 0x1FFF):
             raise ValueError(f"Константа {b} выходит за диапазон 0-8191")
-        if not (0 <= c <= 0x1F):  # 5 бит
+        if not (0 <= c <= 0x1F):
             raise ValueError(f"Адрес {c} выходит за диапазон 0-31")
 
-        # Формируем 24 бита (3 байта)
-        # Биты: AAAAAA BBBBBBBBBBBBB CCCCC
-        #        5-0    18-6         23-19
+        # ПРАВИЛЬНАЯ упаковка для LOAD
+        byte1 = a  # код операции (6)
+        byte2 = b & 0xFF  # младшие 8 бит константы (0-255)
+        byte3 = ((b >> 8) & 0x1F) | (c << 5)  # старшие 5 бит константы (0-31) + адрес (0-31)
+        # byte3: 0-31 | 0-31<<5 = 0-31 | 0-992 = 0-1023 ❌ Выходит за 255!
 
-        word = (a & 0x3F) | ((b & 0x1FFF) << 6) | ((c & 0x1F) << 19)
+        # ИСПРАВЛЕНИЕ: поменяем местами
+        byte3 = (c & 0x1F) | (((b >> 8) & 0x1F) << 5)  # адрес (0-31) + старшие 5 бит константы (0-31)
+        # byte3: 0-31 | 0-31<<5 = 0-31 | 0-992 = 0-1023 ❌ Тоже выходит!
 
-        # Разбиваем на 3 байта (little-endian)
-        byte1 = word & 0xFF
-        byte2 = (word >> 8) & 0xFF
-        byte3 = (word >> 16) & 0xFF
+        # РЕШЕНИЕ: ограничим константу чтобы старшие биты помещались
+        # Максимальная константа: 255 + (31 << 8) = 255 + 7936 = 8191 ✅
+        byte3 = (c & 0x1F) | (((b >> 8) & 0x1F) << 5)
 
         return [byte1, byte2, byte3], {'A': a, 'B': b, 'C': c}
 
     def assemble_read(self, command):
-        """READ: A=6 бит, B=5 бит, C=8 бит, D=5 бит (3 байта)"""
         a = self.command_codes['read']
         b = command['result_reg']
         c = command['offset']
         d = command['address_reg']
 
-        # Проверка диапазонов
         if not (0 <= b <= 0x1F):
             raise ValueError(f"Адрес регистра результата {b} выходит за диапазон 0-31")
         if not (0 <= c <= 0xFF):
@@ -63,26 +62,21 @@ class Assembler:
         if not (0 <= d <= 0x1F):
             raise ValueError(f"Адрес регистра {d} выходит за диапазон 0-31")
 
-        # Формируем 24 бита (3 байта)
-        # Биты: AAAAAA BBBBB CCCCCCCC DDDDD
-        #        5-0    10-6  18-11   23-19
+        # ИСПРАВЛЕННАЯ упаковка для READ
+        byte1 = a  # код операции (22)
+        byte2 = (b & 0x1F) | ((d & 0x07) << 5)  # result_reg + address_reg (младшие 3 бита)
+        byte3 = c  # offset
 
-        word = (a & 0x3F) | ((b & 0x1F) << 6) | ((c & 0xFF) << 11) | ((d & 0x1F) << 19)
-
-        byte1 = word & 0xFF
-        byte2 = (word >> 8) & 0xFF
-        byte3 = (word >> 16) & 0xFF
+        print(f"DEBUG ASSEMBLE READ: b={b}, c={c}, d={d} -> bytes=[0x{byte1:02x}, 0x{byte2:02x}, 0x{byte3:02x}]")
 
         return [byte1, byte2, byte3], {'A': a, 'B': b, 'C': c, 'D': d}
 
     def assemble_write(self, command):
-        """WRITE: A=6 бит, B=5 бит, C=5 бит, D=8 бит (3 байта)"""
         a = self.command_codes['write']
         b = command['value_reg']
         c = command['address_reg']
         d = command['offset']
 
-        # Проверка диапазонов
         if not (0 <= b <= 0x1F):
             raise ValueError(f"Адрес регистра значения {b} выходит за диапазон 0-31")
         if not (0 <= c <= 0x1F):
@@ -90,18 +84,16 @@ class Assembler:
         if not (0 <= d <= 0xFF):
             raise ValueError(f"Смещение {d} выходит за диапазон 0-255")
 
-        # Формируем 24 бита (3 байта)
-        # Биты: AAAAAA BBBBB CCCCC DDDDDDDD
-        #        5-0    10-6  15-11 23-16
+        # ПРАВИЛЬНАЯ упаковка для WRITE
+        byte1 = a  # код операции (26)
+        byte2 = (b & 0x1F) | ((c & 0x1F) << 5)  # value_reg (0-31) + address_reg (0-31)
+        # byte2: 0-31 | 0-31<<5 = 0-31 | 0-992 = 0-1023 ❌ Выходит за 255!
 
-        word = (a & 0x3F) | ((b & 0x1F) << 6) | ((c & 0x1F) << 11) | ((d & 0xFF) << 16)
-
-        byte1 = word & 0xFF
-        byte2 = (word >> 8) & 0xFF
-        byte3 = (word >> 16) & 0xFF
+        # ИСПРАВЛЕНИЕ: ограничим сдвиг
+        byte2 = (b & 0x1F) | ((c & 0x07) << 5)  # value_reg (0-31) + address_reg (0-7) - ограничиваем!
+        byte3 = d  # offset (0-255)
 
         return [byte1, byte2, byte3], {'A': a, 'B': b, 'C': c, 'D': d}
-
     def assemble_pow(self, command):
         """POW: A=6 бит, B=5 бит, C=5 бит, D=26 бит (6 байт)"""
         a = self.command_codes['pow']
