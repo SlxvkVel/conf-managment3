@@ -171,6 +171,20 @@ class Assembler:
 
     def display_test_output(self, intermediate_repr):
         print("ПРОМЕЖУТОЧНОЕ ПРЕДСТАВЛЕНИЕ ПРОГРАММЫ:")
+
+        for item in intermediate_repr:
+            print(f"Команда {item['index'] + 1}: {item['command'].upper()}")
+            print(f"Поля: {item['fields']}")
+            hex_bytes = [f"0x{byte:02x}" for byte in item['bytes']]
+            print(f"Байты: {hex_bytes}")
+            print()
+
+    def save_binary(self, binary_code, filename):
+        with open(filename, 'wb') as f:
+            f.write(bytes(binary_code))
+
+    def display_test_output(self, intermediate_repr, binary_code):
+        print("ПРОМЕЖУТОЧНОЕ ПРЕДСТАВЛЕНИЕ ПРОГРАММЫ:")
         print("=" * 50)
 
         for item in intermediate_repr:
@@ -180,6 +194,12 @@ class Assembler:
             print(f"Байты: {hex_bytes}")
             print()
 
+        print("РЕЗУЛЬТАТ:")
+        hex_output = [f"0x{byte:02x}" for byte in binary_code]
+        print(f"Байтовый вывод: {hex_output}")
+        print(f"Всего байт: {len(binary_code)}")
+        print(f"Ассемблировано команд: {len(intermediate_repr)}")
+
 
 def main():
     assembler = Assembler()
@@ -188,17 +208,20 @@ def main():
     try:
         program = assembler.load_program(args.input_file)
         binary_code, intermediate_repr = assembler.assemble(program)
+
+        #  Запись в двоичный файл
         assembler.save_binary(binary_code, args.output_file)
 
         if args.test:
-            assembler.display_test_output(intermediate_repr)
-            print(f"Программа успешно ассемблирована!")
-            print(f"Размер бинарного кода: {len(binary_code)} байт")
+            #  Расширенный вывод в тестовом режиме
+            assembler.display_test_output(intermediate_repr, binary_code)
+        else:
+            # Вывод числа команд в обычном режиме
+            print(f"Ассемблировано команд: {len(intermediate_repr)}")
 
     except Exception as e:
         print(f"Ошибка ассемблирования: {e}")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()
