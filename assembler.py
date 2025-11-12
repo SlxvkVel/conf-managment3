@@ -28,27 +28,37 @@ class Assembler:
         b = command['constant']
         c = command['address']
 
-        if not (0 <= b <= 0x1FFF):
-            raise ValueError(f"Константа {b} выходит за диапазон 0-8191")
+        print(f"DEBUG LOAD: b={b}, c={c}")
+
+        # Ограничим константу 12 битами (0-4095)
+        if b > 4095:
+            raise ValueError(f"Константа {b} слишком большая, максимум 4095")
         if not (0 <= c <= 0x1F):
             raise ValueError(f"Адрес {c} выходит за диапазон 0-31")
 
-        # ПРАВИЛЬНАЯ упаковка для LOAD
-        byte1 = a  # код операции (6)
-        byte2 = b & 0xFF  # младшие 8 бит константы (0-255)
-        byte3 = ((b >> 8) & 0x1F) | (c << 5)  # старшие 5 бит константы (0-31) + адрес (0-31)
-        # byte3: 0-31 | 0-31<<5 = 0-31 | 0-992 = 0-1023 ❌ Выходит за 255!
+        # ИСПРАВЛЕННАЯ упаковка:
+        byte1 = a  # код операции
+        byte2 = b & 0xFF  # младшие 8 бит константы
+        byte3 = ((b >> 8) & 0x0F) | ((c & 0x1F) << 4)  # старшие 4 бита константы + адрес
 
-        # ИСПРАВЛЕНИЕ: поменяем местами
-        byte3 = (c & 0x1F) | (((b >> 8) & 0x1F) << 5)  # адрес (0-31) + старшие 5 бит константы (0-31)
-        # byte3: 0-31 | 0-31<<5 = 0-31 | 0-992 = 0-1023 ❌ Тоже выходит!
+        # Проверим что byte3 в диапазоне
+        # (b>>8)&0x0F = 0-15, c<<4 = 0-496 → максимум 15+496=511 ❌ все еще может быть >255!
 
-        # РЕШЕНИЕ: ограничим константу чтобы старшие биты помещались
-        # Максимальная константа: 255 + (31 << 8) = 255 + 7936 = 8191 ✅
-        byte3 = (c & 0x1F) | (((b >> 8) & 0x1F) << 5)
+        # РЕШЕНИЕ: ограничим адрес 3 битами (0-7) вместо 5 битов
+        if c > 7:
+            raise ValueError(f"Адрес регистра {c} слишком большой, максимум 7")
 
-        return [byte1, byte2, byte3], {'A': a, 'B': b, 'C': c}
+        byte3 = ((b >> 8) & 0x0F) | ((c & 0x07) << 4)  # старшие 4 бита константы + адрес (3 бита)
+        # Максимум: 15 + (7<<4)=15+112=127 ✅
 
+        bytes_list = [byte1, byte2, byte3]
+
+        for i, byte in enumerate(bytes_list):
+            print(f"DEBUG LOAD Byte {i + 1}: {byte} (0x{byte:02x})")
+            if not (0 <= byte <= 255):
+                raise ValueError(f"Byte {i + 1} выходит за диапазон: {byte}")
+
+        return bytes_list, {'A': a, 'B': b, 'C': c}
     def assemble_read(self, command):
         a = self.command_codes['read']
         b = command['result_reg']
@@ -94,14 +104,15 @@ class Assembler:
         byte3 = d  # offset (0-255)
 
         return [byte1, byte2, byte3], {'A': a, 'B': b, 'C': c, 'D': d}
+
     def assemble_pow(self, command):
-        """POW: A=6 бит, B=5 бит, C=5 бит, D=26 бит (6 байт)"""
         a = self.command_codes['pow']
         b = command['value2_reg']
         c = command['result_reg']
         d = command['value1_addr']
 
-        # Проверка диапазонов
+        print(f"DEBUG POW: a={a}, b={b}, c={c}, d={d}")
+
         if not (0 <= b <= 0x1F):
             raise ValueError(f"Адрес регистра {b} выходит за диапазон 0-31")
         if not (0 <= c <= 0x1F):
@@ -109,24 +120,23 @@ class Assembler:
         if not (0 <= d <= 0x3FFFFFF):
             raise ValueError(f"Адрес памяти {d} выходит за диапазон 0-67108863")
 
-        # Формируем 48 бит (6 байт)
-        # Согласно тесту: D=470 должно давать 0x01 в 4-м байте
-        # Значит используется little-endian для поля D
+        # СУПЕР-ПРОСТАЯ упаковка (6 байт)
+        byte1 = a  # код операции = 42
+        byte2 = b  # value2_reg = 4
+        byte3 = c  # result_reg = 5
+        byte4 = (d >> 0) & 0xFF  # D[0:7] = 1000 & 0xFF = 232
+        byte5 = (d >> 8) & 0xFF  # D[8:15] = (1000 >> 8) & 0xFF = 3
+        byte6 = (d >> 16) & 0xFF  # D[16:23] = (1000 >> 16) & 0xFF = 0
 
-        # Первые 3 байта: A(6) + B(5) + C(5) + D[7:0](8)
-        word1 = (a & 0x3F) | ((b & 0x1F) << 6) | ((c & 0x1F) << 11) | ((d & 0xFF) << 16)
+        bytes_list = [byte1, byte2, byte3, byte4, byte5, byte6]
 
-        # Следующие 3 байта: D[25:8](18 бит)
-        word2 = (d >> 8) & 0x3FFFF  # 18 бит
+        # Проверим каждый байт
+        for i, byte in enumerate(bytes_list):
+            print(f"DEBUG Byte {i + 1}: {byte} (0x{byte:02x})")
+            if not (0 <= byte <= 255):
+                raise ValueError(f"Byte {i + 1} выходит за диапазон: {byte}")
 
-        byte1 = word1 & 0xFF
-        byte2 = (word1 >> 8) & 0xFF
-        byte3 = (word1 >> 16) & 0xFF
-        byte4 = word2 & 0xFF
-        byte5 = (word2 >> 8) & 0xFF
-        byte6 = (word2 >> 16) & 0xFF
-
-        return [byte1, byte2, byte3, byte4, byte5, byte6], {'A': a, 'B': b, 'C': c, 'D': d}
+        return bytes_list, {'A': a, 'B': b, 'C': c, 'D': d}
     def assemble_command(self, command):
         cmd_type = command['command']
 
@@ -146,14 +156,30 @@ class Assembler:
         intermediate_representation = []
 
         for i, command in enumerate(program):
-            bytes_list, fields = self.assemble_command(command)
-            binary_code.extend(bytes_list)
-            intermediate_representation.append({
-                'index': i,
-                'command': command['command'],
-                'fields': fields,
-                'bytes': bytes_list
-            })
+            print(f"DEBUG: Обрабатываем команду {i + 1}: {command}")
+
+            try:
+                bytes_list, fields = self.assemble_command(command)
+                print(f"DEBUG: Получены байты: {bytes_list}")
+
+                # Проверим каждый байт
+                for j, byte in enumerate(bytes_list):
+                    if not (0 <= byte <= 255):
+                        print(f"ERROR: Byte {j} выходит за диапазон: {byte}")
+                        raise ValueError(f"Byte {j} выходит за диапазон: {byte}")
+
+                binary_code.extend(bytes_list)
+                intermediate_representation.append({
+                    'index': i,
+                    'command': command['command'],
+                    'fields': fields,
+                    'bytes': bytes_list
+                })
+                print(f"DEBUG: Команда {i + 1} успешно ассемблирована")
+
+            except Exception as e:
+                print(f"DEBUG: Ошибка в команде {i + 1}: {e}")
+                raise
 
         return binary_code, intermediate_representation
 

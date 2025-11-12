@@ -1,0 +1,82 @@
+# Исправленная тестовая программа для команды POW
+# Используем адреса регистров 0-7
+
+# Подготовка данных в памяти
+- command: load
+  constant: 2    # основание 1
+  address: 0
+
+- command: load
+  constant: 500  # адрес для основания 1
+  address: 1
+
+- command: write
+  value_reg: 0
+  address_reg: 1
+  offset: 0
+
+- command: load
+  constant: 3    # показатель 1
+  address: 2
+
+- command: load
+  constant: 600  # адрес для показателя 1
+  address: 3
+
+- command: write
+  value_reg: 2
+  address_reg: 3
+  offset: 0
+
+- command: load
+  constant: 5    # основание 2
+  address: 4
+
+- command: load
+  constant: 501  # адрес для основания 2
+  address: 5
+
+- command: write
+  value_reg: 4
+  address_reg: 5
+  offset: 0
+
+- command: load
+  constant: 2    # показатель 2
+  address: 6
+
+- command: load
+  constant: 601  # адрес для показателя 2
+  address: 7
+
+- command: write
+  value_reg: 6
+  address_reg: 7
+  offset: 0
+
+# Вычисление 2^3
+- command: pow
+  value1_addr: 500  # основание
+  value2_reg: 3     # регистр с адресом показателя (600)
+  result_reg: 0     # результат 2^3 = 8
+
+# Вычисление 5^2
+- command: pow
+  value1_addr: 501  # основание
+  value2_reg: 7     # регистр с адресом показателя (601)
+  result_reg: 1     # результат 5^2 = 25
+
+# Сохранение результатов в память для проверки
+- command: load
+  constant: 700  # адрес для результатов
+  address: 2
+
+- command: write
+  value_reg: 0
+  address_reg: 2
+  offset: 0
+
+- command: write
+  value_reg: 1
+  address_reg: 2
+  offset: 1

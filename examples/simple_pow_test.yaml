@@ -1,0 +1,45 @@
+# Упрощенная тестовая программа для команды POW
+# Вычисляет 2^3 = 8
+
+# Записываем данные напрямую в память
+- command: load
+  constant: 2    # основание
+  address: 1
+
+- command: load
+  constant: 1000 # адрес для записи основания
+  address: 2
+
+- command: write
+  value_reg: 1
+  address_reg: 2
+  offset: 0
+
+- command: load
+  constant: 3    # показатель
+  address: 3
+
+- command: load
+  constant: 2000 # адрес для записи показателя
+  address: 4
+
+- command: write
+  value_reg: 3
+  address_reg: 4
+  offset: 0
+
+# Вычисление 2^3
+- command: pow
+  value1_addr: 1000  # адрес основания в памяти
+  value2_reg: 4      # регистр с адресом показателя (2000)
+  result_reg: 5      # результат 2^3 = 8
+
+# Сохраняем результат в память для проверки
+- command: load
+  constant: 3000
+  address: 6
+
+- command: write
+  value_reg: 5
+  address_reg: 6
+  offset: 0

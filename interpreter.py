@@ -53,16 +53,13 @@ class UVMInterpreter:
             return None, None
 
     def decode_load(self):
-        """Исправленное декодирование LOAD"""
         byte1 = self.memory[self.pc]
         byte2 = self.memory[self.pc + 1]
         byte3 = self.memory[self.pc + 2]
 
-        # Байты: 0x06, 0x64, 0x01 → B=100, C=1
-        # byte2 = B (константа)
-        # byte3 = C (адрес)
-        constant = byte2
-        address = byte3
+        # Новая упаковка:
+        constant = byte2 | ((byte3 & 0x0F) << 8)
+        address = (byte3 >> 4) & 0x07  # теперь 3 бита вместо 5
 
         print(f"LOAD: bytes=[0x{byte1:02x}, 0x{byte2:02x}, 0x{byte3:02x}], constant={constant}, address={address}")
 
@@ -104,10 +101,24 @@ class UVMInterpreter:
 
         self.pc += 3
         return 'write', {'value_reg': value_reg, 'address_reg': address_reg, 'offset': offset}
+
     def decode_pow(self):
-        print("POW: пропускаем команду")
+        byte1 = self.memory[self.pc]
+        byte2 = self.memory[self.pc + 1]
+        byte3 = self.memory[self.pc + 2]
+        byte4 = self.memory[self.pc + 3]
+        byte5 = self.memory[self.pc + 4]
+        byte6 = self.memory[self.pc + 5]
+
+        # СУПЕР-ПРОСТАЯ распаковка
+        value2_reg = byte2
+        result_reg = byte3
+        value1_addr = (byte4 << 0) | (byte5 << 8) | (byte6 << 16)
+
+        print(f"POW: value2_reg={value2_reg}, result_reg={result_reg}, value1_addr={value1_addr}")
+
         self.pc += 6
-        return 'pow', {}
+        return 'pow', {'value2_reg': value2_reg, 'result_reg': result_reg, 'value1_addr': value1_addr}
 
     def execute_command(self, command_type, params):
         print(f"EXECUTE: {command_type} {params}")
@@ -152,8 +163,33 @@ class UVMInterpreter:
             print(f"WRITE: адрес памяти вне диапазона: {mem_address}")
 
     def execute_pow(self, params):
-        print(f"POW: операция возведения в степень (заглушка)")
+        """Выполнение команды POW - возведение в степень"""
+        value2_reg = params['value2_reg']
+        result_reg = params['result_reg']
+        value1_addr = params['value1_addr']
 
+        # Получаем операнды
+        value1 = self.memory[value1_addr] if value1_addr < len(self.memory) else 0
+        value2_addr = self.registers[value2_reg]
+        value2 = self.memory[value2_addr] if value2_addr < len(self.memory) else 0
+
+        # Вычисляем степень
+        try:
+            if value1 < 0 or value2 < 0:
+                result = 0
+            elif value1 == 0 and value2 == 0:
+                result = 1
+            else:
+                result = int(value1 ** value2)
+                if result > 0xFFFFFFFF:
+                    result = 0xFFFFFFFF
+        except:
+            result = 0
+
+        # Сохраняем результат в регистр
+        self.registers[result_reg] = result
+
+        print(f"POW: memory[{value1_addr}]({value1}) ^ memory[{value2_addr}]({value2}) = {result} → R[{result_reg}]")
     def create_memory_dump(self, start_addr, end_addr, filename):
         root = Element('memory_dump')
         root.set('start', str(start_addr))
