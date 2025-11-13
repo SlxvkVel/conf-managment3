@@ -3,8 +3,8 @@ from assembler import Assembler
 
 
 def run_test(test_name, input_file, expected_bytes):
-    print(f"🧪 Тестируем: {test_name}")
-    print(f"📁 Файл: {input_file}")
+    print(f" Тестируем: {test_name}")
+    print(f" Файл: {input_file}")
 
     try:
         assembler = Assembler()
@@ -15,18 +15,18 @@ def run_test(test_name, input_file, expected_bytes):
             f.write(bytes(binary_code))
 
         actual_bytes = [f"0x{byte:02x}" for byte in binary_code]
-        print(f"✅ Сгенерировано: {actual_bytes}")
-        print(f"📋 Ожидалось:    {expected_bytes}")
+        print(f" Сгенерировано: {actual_bytes}")
+        print(f" Ожидалось:    {expected_bytes}")
 
         if actual_bytes == expected_bytes:
-            print("🎉 ТЕСТ ПРОЙДЕН!")
+            print(" ТЕСТ ПРОЙДЕН!")
             return True
         else:
-            print("💥 ТЕСТ НЕ ПРОЙДЕН!")
+            print(" ТЕСТ НЕ ПРОЙДЕН!")
             return False
 
     except Exception as e:
-        print(f"❌ ОШИБКА: {e}")
+        print(f" ОШИБКА: {e}")
         return False
 
 

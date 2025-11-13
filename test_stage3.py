@@ -34,13 +34,13 @@ def test_array_copy():
             break
 
     print("\nПроверка копирования массива:")
-    source_data = interpreter.memory[1000:1005]
-    dest_data = interpreter.memory[2000:2005]
+    source_data = interpreter.memory[1000:1003]  # 1000, 1001, 1002
+    dest_data = interpreter.memory[2000:2003]    # 2000, 2001, 2002
 
-    print(f"Исходный массив (1000-1004): {source_data}")
-    print(f"Скопированный массив (2000-2004): {dest_data}")
+    print(f"Исходный массив (1000-1002): {source_data}")
+    print(f"Скопированный массив (2000-2002): {dest_data}")
 
-    interpreter.create_memory_dump(1000, 2004, 'memory_dump.xml')
+    interpreter.create_memory_dump(1000, 2002, 'memory_dump.xml')
 
     if source_data == dest_data:
         print(" МАССИВ УСПЕШНО СКОПИРОВАН!")

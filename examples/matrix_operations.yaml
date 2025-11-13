@@ -1,0 +1,126 @@
+# Пример 3: Операции с матрицами 2x2
+# Умножение матрицы на скаляр и сохранение результата
+
+# Исходная матрица 2x2 в памяти 4000-4003
+# [2, 3]
+# [4, 5]
+
+# Записываем исходную матрицу
+- command: load
+  constant: 2
+  address: 0
+
+- command: load
+  constant: 4000
+  address: 1
+
+- command: write
+  value_reg: 0
+  address_reg: 1
+  offset: 0
+
+- command: load
+  constant: 3
+  address: 0
+
+- command: write
+  value_reg: 0
+  address_reg: 1
+  offset: 1
+
+- command: load
+  constant: 4
+  address: 0
+
+- command: write
+  value_reg: 0
+  address_reg: 1
+  offset: 2
+
+- command: load
+  constant: 5
+  address: 0
+
+- command: write
+  value_reg: 0
+  address_reg: 1
+  offset: 3
+
+# Скаляр для умножения = 3
+- command: load
+  constant: 3
+  address: 2
+
+# Результирующая матрица 2x2 в памяти 5000-5003
+- command: load
+  constant: 5000
+  address: 3
+
+# Умножаем каждый элемент матрицы на скаляр
+# Элемент [0,0]: 2 * 3 = 6
+- command: load
+  constant: 4000
+  address: 4
+
+- command: read
+  address_reg: 4
+  offset: 0
+  result_reg: 5
+
+- command: pow
+  value1_addr: 4000
+  value2_reg: 2
+  result_reg: 6
+
+- command: write
+  value_reg: 6
+  address_reg: 3
+  offset: 0
+
+# Элемент [0,1]: 3 * 3 = 9
+- command: read
+  address_reg: 4
+  offset: 1
+  result_reg: 5
+
+- command: pow
+  value1_addr: 4001
+  value2_reg: 2
+  result_reg: 6
+
+- command: write
+  value_reg: 6
+  address_reg: 3
+  offset: 1
+
+# Элемент [1,0]: 4 * 3 = 12
+- command: read
+  address_reg: 4
+  offset: 2
+  result_reg: 5
+
+- command: pow
+  value1_addr: 4002
+  value2_reg: 2
+  result_reg: 6
+
+- command: write
+  value_reg: 6
+  address_reg: 3
+  offset: 2
+
+# Элемент [1,1]: 5 * 3 = 15
+- command: read
+  address_reg: 4
+  offset: 3
+  result_reg: 5
+
+- command: pow
+  value1_addr: 4003
+  value2_reg: 2
+  result_reg: 6
+
+- command: write
+  value_reg: 6
+  address_reg: 3
+  offset: 3

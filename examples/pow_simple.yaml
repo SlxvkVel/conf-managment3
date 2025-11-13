@@ -1,0 +1,62 @@
+# Простые вычисления степеней
+- command: load
+  constant: 2
+  address: 0
+
+- command: load
+  constant: 3
+  address: 1
+
+- command: load
+  constant: 1000
+  address: 2
+
+- command: write
+  value_reg: 0
+  address_reg: 2
+  offset: 0
+
+- command: write
+  value_reg: 1
+  address_reg: 2
+  offset: 1
+
+- command: load
+  constant: 2000
+  address: 3
+
+- command: write
+  value_reg: 0
+  address_reg: 3
+  offset: 0
+
+- command: write
+  value_reg: 1
+  address_reg: 3
+  offset: 1
+
+# 2^3 = 8
+- command: pow
+  value1_addr: 1000
+  value2_reg: 3
+  result_reg: 4
+
+- command: load
+  constant: 3000
+  address: 5
+
+- command: write
+  value_reg: 4
+  address_reg: 5
+  offset: 0
+
+# 3^2 = 9
+- command: pow
+  value1_addr: 1001
+  value2_reg: 3
+  result_reg: 4
+
+- command: write
+  value_reg: 4
+  address_reg: 5
+  offset: 1

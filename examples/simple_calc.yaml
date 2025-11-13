@@ -1,0 +1,31 @@
+# Простые вычисления: (2+3)*4
+- command: load
+  constant: 2
+  address: 0
+
+- command: load
+  constant: 3
+  address: 1
+
+- command: load
+  constant: 4
+  address: 2
+
+- command: load
+  constant: 1000
+  address: 3
+
+- command: write
+  value_reg: 0
+  address_reg: 3
+  offset: 0
+
+- command: write
+  value_reg: 1
+  address_reg: 3
+  offset: 1
+
+- command: write
+  value_reg: 2
+  address_reg: 3
+  offset: 2

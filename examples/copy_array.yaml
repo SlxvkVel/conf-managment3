@@ -1,7 +1,4 @@
 # Копирование массива из 3 элементов
-# Используем только регистры 0-7
-
-# Исходный массив в памяти 1000-1002
 - command: load
   constant: 10
   address: 0
@@ -15,7 +12,7 @@
   address: 2
 
 - command: load
-  constant: 1000
+  constant: 500
   address: 3
 
 - command: write
@@ -33,12 +30,10 @@
   address_reg: 3
   offset: 2
 
-# Целевой массив в памяти 2000-2002
 - command: load
-  constant: 2000
+  constant: 600
   address: 4
 
-# Копируем элементы
 - command: read
   address_reg: 3
   offset: 0
